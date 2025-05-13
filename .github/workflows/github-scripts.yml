@@ -20,13 +20,16 @@ jobs:
     - name: Add issue to project board
       if: contains(github.event.issue.labels.*.name, 'bug')
       uses: actions/github-script@0.8.0
+      env: 
+        projectName: hello-world-project
+        columnName: Bug Backlog
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        project-name: 'hello-world-project'
-        column-name-to-find: 'Bug Backlog'
+        #project-name: 'hello-world-project'
+        #column-name-to-find: 'Bug Backlog'
         script: |
-            const projectName = context.payload.inputs['project-name'] || '${{ github.event.inputs.project-name }}';
-            const columnName = context.payload.inputs['column-name-to-find'] || '${{ github.event.inputs.column-name-to-find }}';
+            const projectName = process.env.projectName;
+            const columnName = process.env.columnName;
   
             // 1. Get the project ID by name (you might need to adjust this if you have multiple projects with the same name)
             const projects = await github.projects.listForRepo({
