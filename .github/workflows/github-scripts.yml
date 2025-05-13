@@ -22,10 +22,46 @@ jobs:
       uses: actions/github-script@0.8.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        project-name: 'hello-world-project'
+        column-to-find: 'Bug Backlog'
         script: |
-            const columnID = process.env.PROJECT_COLUMN_ID;
+            const projectName = context.payload.inputs['project-name'] || '${{ github.event.inputs.project-name }}';
+            const columnName = context.payload.inputs['column-name-to-find'] || '${{ github.event.inputs.column-name-to-find }}';
+  
+            // 1. Get the project ID by name (you might need to adjust this if you have multiple projects with the same name)
+            const projects = await github.projects.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open', // Or 'closed' if your project is closed
+            });
+  
+            const targetProject = projects.data.find(project => project.name === projectName);
+  
+            if (!targetProject) {
+              console.log(`Project "${projectName}" not found.`);
+              return;
+            }
+  
+            const projectId = targetProject.id;
+  
+            // 2. List the columns for the found project
+            const columns = await github.projects.listColumns({
+              project_id: projectId,
+            });
+  
+            // 3. Find the target column by name
+            const targetColumn = columns.data.find(column => column.name === columnName);
+  
+            if (!targetColumn) {
+              console.log(`Column "${columnName}" not found in project "${projectName}".`);
+              return;
+            }
+  
+            const columnId = targetColumn.id;
+  
+            // 4. Create the card in the found column
             github.projects.createCard({
-            column_id: columnID,
+            column_id: columnId,
             content_id: context.payload.issue.id,
             content_type: "Issue"
             });
