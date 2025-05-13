@@ -23,7 +23,7 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         project-name: 'hello-world-project'
-        column-to-find: 'Bug Backlog'
+        column-name-to-find: 'Bug Backlog'
         script: |
             const projectName = context.payload.inputs['project-name'] || '${{ github.event.inputs.project-name }}';
             const columnName = context.payload.inputs['column-name-to-find'] || '${{ github.event.inputs.column-name-to-find }}';
