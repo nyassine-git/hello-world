@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/github-script@v7
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
+        github-token: {% raw %}${{secrets.GITHUB_TOKEN}}{% endraw %}
         script: |
             github.issues.createComment({
             issue_number: context.issue.number,
