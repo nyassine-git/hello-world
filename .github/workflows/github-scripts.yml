@@ -37,7 +37,7 @@ jobs:
               return;
             }
 
-            console.log('owner', "${context.repo.owner}");
+            console.log('owner', context.repo.owner);
             // 1. Get the Project Node ID by name
             const projectsQuery = `
               query {
