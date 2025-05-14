@@ -32,7 +32,7 @@ jobs:
             const columnName = process.env.columnName;
             const issueId = context.payload.issue.id;
   
-            if (!projectName || !columnName || !issueNodeId) {
+            if (!projectName || !columnName || !issueId) {
             console.log('Project name, column name, or issue Node ID is missing.');
               return;
             }
@@ -113,7 +113,7 @@ jobs:
               mutation AddItemToProject {
                 addProjectV2ItemById(input: {
                   projectId: "${projectId}",
-                  contentId: "${issueNodeId}"
+                  contentId: "${issueId}"
                 }) {
                   item {
                     id
