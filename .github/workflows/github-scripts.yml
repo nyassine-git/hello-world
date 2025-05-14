@@ -41,7 +41,7 @@ jobs:
             const projectsQuery = `
               query {
                 repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") {
-                  projectsV2(first: 100) {
+                  projectsV2(first: 100, query: "${projectName}") {
                     nodes {
                       id
                       title
