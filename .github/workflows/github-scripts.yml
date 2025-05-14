@@ -32,11 +32,11 @@ jobs:
             const columnName = process.env.columnName;
   
             // 1. Get the project ID by name (you might need to adjust this if you have multiple projects with the same name)
-            const projects = await github.projects.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open', // Or 'closed' if your project is closed
+            const projects = await github.projects.listForUser({
+              username: context.repo.owner
             });
+
+            console.log('projects', projects);
   
             const targetProject = projects.data.find(project => project.name === projectName);
   
