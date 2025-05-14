@@ -52,6 +52,7 @@ jobs:
             `;
   
             const projectsResult = await github.graphql(projectsQuery);
+            console.log('projectsResult', projectsResult);
             const targetProject = projectsResult.repository.projectsV2.nodes.find(
               (project) => project.title === projectName
             );
