@@ -19,7 +19,7 @@ jobs:
             });
     - name: Add issue to project board
       if: contains(github.event.issue.labels.*.name, 'bug')
-      uses: actions/github-script@0.8.0
+      uses: actions/github-script@v7
       env: 
         projectName: hello-world-project
         columnName: Bug Backlog
@@ -30,16 +30,31 @@ jobs:
         script: |
             const projectName = process.env.projectName;
             const columnName = process.env.columnName;
+            const issueId = context.payload.issue.id;
   
-            // 1. Get the project ID by name (you might need to adjust this if you have multiple projects with the same name)
-            const projects = await github.projects.listForUser({
-              username: context.repo.owner
-            });
+            if (!projectName || !columnName || !issueNodeId) {
+            console.log('Project name, column name, or issue Node ID is missing.');
+              return;
+            }
 
-            console.log('projects', projects);
+            // 1. Get the Project Node ID by name
+            const projectsQuery = `
+              query {
+                repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") {
+                  projectsV2(first: 100, query: "${projectName}") {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+              }
+            `;
   
-            /*
-            const targetProject = projects.data.find(project => project.name === projectName);
+            const projectsResult = await github.graphql(projectsQuery);
+            const targetProject = projectsResult.repository.projectsV2.nodes.find(
+              (project) => project.title === projectName
+            );
   
             if (!targetProject) {
               console.log(`Project "${projectName}" not found.`);
@@ -47,25 +62,84 @@ jobs:
             }
   
             const projectId = targetProject.id;
+            console.log(`Found project ID: ${projectId}`);
   
-            // 2. List the columns for the found project
-            const columns = await github.projects.listColumns({
-              project_id: projectId,
-            });
+            // 2. Get the Status Field ID and the Option ID for the target column
+            const fieldsQuery = `
+              query {
+                node(id: "${projectId}") {
+                  ... on ProjectV2 {
+                    fields(first: 100) {
+                      nodes {
+                        id
+                        name
+                        ... on ProjectV2SingleSelectField {
+                          options {
+                            id
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
   
-            // 3. Find the target column by name
-            const targetColumn = columns.data.find(column => column.name === columnName);
+            const fieldsResult = await github.graphql(fieldsQuery);
+            const statusField = fieldsResult.node.fields.nodes.find(
+              (field) => field.name === 'Status' // Assuming your status field is named 'Status'
+            );
   
-            if (!targetColumn) {
-              console.log(`Column "${columnName}" not found in project "${projectName}".`);
+            if (!statusField || !statusField.options) {
+              console.log('Status field not found or has no options.');
               return;
             }
   
-            const columnId = targetColumn.id;
+            const targetOption = statusField.options.find(
+              (option) => option.name === columnName
+            );
   
-            // 4. Create the card in the found column
-            github.projects.createCard({
-            column_id: columnId,
-            content_id: context.payload.issue.id,
-            content_type: "Issue"
-            });*/
+            if (!targetOption) {
+              console.log(`Column "${columnName}" not found in the Status field.`);
+              return;
+            }
+  
+            const statusValueId = targetOption.id;
+            console.log(`Found status option ID: ${statusValueId}`);
+  
+            // 3. Add the issue to the project and set the status
+            const addItemMutation = `
+              mutation AddItemToProject {
+                addProjectV2ItemById(input: {
+                  projectId: "${projectId}",
+                  contentId: "${issueNodeId}"
+                }) {
+                  item {
+                    id
+                  }
+                }
+              }
+            `;
+  
+            const addItemResult = await github.graphql(addItemMutation);
+            const itemId = addItemResult.addProjectV2ItemById.item.id;
+            console.log(`Issue added to project with item ID: ${itemId}`);
+  
+            const updateItemMutation = `
+              mutation UpdateProjectItemFieldValue {
+                updateProjectV2ItemFieldValue(input: {
+                  itemId: "${itemId}",
+                  fieldId: "${statusField.id}",
+                  value: { singleSelectOptionId: "${statusValueId}" }
+                }) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }
+            `;
+  
+            await github.graphql(updateItemMutation);
+            console.log(`Issue #${context.issue.number} added to column "${columnName}" in project "${projectName}".`);
+            
