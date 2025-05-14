@@ -38,6 +38,7 @@ jobs:
 
             console.log('projects', projects);
   
+            /*
             const targetProject = projects.data.find(project => project.name === projectName);
   
             if (!targetProject) {
@@ -67,4 +68,4 @@ jobs:
             column_id: columnId,
             content_id: context.payload.issue.id,
             content_type: "Issue"
-            });
+            });*/
