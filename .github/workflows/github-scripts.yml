@@ -37,111 +37,60 @@ jobs:
               return;
             }
 
-            console.log('owner', context.repo.owner);
-            // 1. Get the Project Node ID by name
-            const projectsQuery = `
-              query {
-                user(login: "${context.repo.owner}") {
-                  projectsV2(first: 100) {
-                    nodes {
-                      id
-                      title
-                    }
+            // 1. Find the project ID (node_id)
+            // This query fetches the project by name within the specified owner context
+            const projectQuery = `
+              query($owner: String!, $projectNumber: Int!) {
+                organization(login: $owner) { # Use 'user' if it's a user project
+                  projectV2(number: $projectNumber) {
+                    id
                   }
                 }
               }
             `;
-  
-            const projectsResult = await github.graphql(projectsQuery);
-            console.log('projectsResult', projectsResult);
-            const targetProject = projectsResult.repository.projectsV2.nodes.find(
-              (project) => project.title === projectName
-            );
-  
-            if (!targetProject) {
-              console.log(`Project "${projectName}" not found.`);
+
+            // To get the Project Number, navigate to your project board in GitHub,
+            // the URL will look something like:
+            // https://github.com/orgs/YOUR_ORG_OR_USERNAME/projects/PROJECT_NUMBER
+            // The PROJECT_NUMBER is what you need here.
+
+            const projectNumber = 1; // <<<<<<<<<<< IMPORTANT: REPLACE WITH YOUR PROJECT NUMBER (e.g., 1, 2, 3...)
+
+            let projectId;
+            try {
+              const { organization } = await github.graphql(projectQuery, {
+                owner: projectOwner,
+                projectNumber: projectNumber
+              });
+              projectId = organization.projectV2.id;
+              console.log(`Found project ID: ${projectId}`);
+            } catch (error) {
+              console.error(`Error finding project: ${error.message}`);
+              core.setFailed(`Could not find project '${projectName}' for owner '${projectOwner}'. Please check the project name and number, and ensure the token has 'project' permissions.`);
               return;
             }
-  
-            const projectId = targetProject.id;
-            console.log(`Found project ID: ${projectId}`);
-  
-            // 2. Get the Status Field ID and the Option ID for the target column
-            const fieldsQuery = `
-              query {
-                node(id: "${projectId}") {
-                  ... on ProjectV2 {
-                    fields(first: 100) {
-                      nodes {
-                        id
-                        name
-                        ... on ProjectV2SingleSelectField {
-                          options {
-                            id
-                            name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-  
-            const fieldsResult = await github.graphql(fieldsQuery);
-            const statusField = fieldsResult.node.fields.nodes.find(
-              (field) => field.name === 'Status' // Assuming your status field is named 'Status'
-            );
-  
-            if (!statusField || !statusField.options) {
-              console.log('Status field not found or has no options.');
-              return;
-            }
-  
-            const targetOption = statusField.options.find(
-              (option) => option.name === columnName
-            );
-  
-            if (!targetOption) {
-              console.log(`Column "${columnName}" not found in the Status field.`);
-              return;
-            }
-  
-            const statusValueId = targetOption.id;
-            console.log(`Found status option ID: ${statusValueId}`);
-  
-            // 3. Add the issue to the project and set the status
-            const addItemMutation = `
-              mutation AddItemToProject {
-                addProjectV2ItemById(input: {
-                  projectId: "${projectId}",
-                  contentId: "${issueId}"
-                }) {
+
+            // 2. Add the issue to the project
+            const addIssueMutation = `
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2Item(input: {projectId: $projectId, contentId: $contentId}) {
                   item {
                     id
                   }
                 }
               }
             `;
-  
-            const addItemResult = await github.graphql(addItemMutation);
-            const itemId = addItemResult.addProjectV2ItemById.item.id;
-            console.log(`Issue added to project with item ID: ${itemId}`);
-  
-            const updateItemMutation = `
-              mutation UpdateProjectItemFieldValue {
-                updateProjectV2ItemFieldValue(input: {
-                  itemId: "${itemId}",
-                  fieldId: "${statusField.id}",
-                  value: { singleSelectOptionId: "${statusValueId}" }
-                }) {
-                  projectV2Item {
-                    id
-                  }
-                }
-              }
-            `;
-  
-            await github.graphql(updateItemMutation);
-            console.log(`Issue #${context.issue.number} added to column "${columnName}" in project "${projectName}".`);
+
+            try {
+              await github.graphql(addIssueMutation, {
+                projectId: projectId,
+                contentId: issueNodeId
+              });
+              console.log(`Successfully added issue #${github.event.issue.number} to project '${projectName}'.`);
+            } catch (error) {
+              console.error(`Error adding issue to project: ${error.message}`);
+              core.setFailed(`Failed to add issue #${github.event.issue.number} to project '${projectName}'.`);
+            }
+
+
             
