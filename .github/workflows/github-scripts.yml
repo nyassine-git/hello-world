@@ -33,11 +33,6 @@ jobs:
             const columnName = process.env.columnName;
             const issueId = context.payload.issue.id;
   
-            if (!projectName || !columnName || !issueId) {
-            console.log('Project name, column name, or issue Node ID is missing.');
-              return;
-            }
-            
             // To get the Project Number, navigate to your project board in GitHub,
             // the URL will look something like:
             // https://github.com/orgs/YOUR_ORG_OR_USERNAME/projects/PROJECT_NUMBER 
@@ -47,11 +42,17 @@ jobs:
 
             const projectNumber = 1; // <<<<<<<<<<< IMPORTANT: REPLACE WITH YOUR PROJECT NUMBER (e.g., 1, 2, 3...)
 
+            if (!projectOwner || !projectName || !columnName || !issueId || !projectNumber) {
+            console.log('Owner, project name, column name, issue Node ID, or project number is missing.');
+              return;
+            }
+            
+
             // 1. Find the project ID (node_id)
-            // This query fetches the project by name within the specified owner context
+            // Query for a user's project
             const projectQuery = `
               query($owner: String!, $projectNumber: Int!) {
-                user(login: $owner) { # *** Changed from 'organization' to 'user' *** Use 'user' if it's a user project
+                user(login: $owner) { # *** Changed from 'organization' to 'user' ***
                   projectV2(number: $projectNumber) {
                     id
                   }
@@ -61,16 +62,15 @@ jobs:
 
             let projectId;
             try {
-              const { organization } = await github.graphql(projectQuery, {
+              const { user } = await github.graphql(projectQuery, {
                 owner: projectOwner,
                 projectNumber: projectNumber
               });
-              //projectId = organization.projectV2.id;
               projectId = user.projectV2.id;
               console.log(`Found project ID: ${projectId}`);
             } catch (error) {
               console.error(`Error finding project: ${error.message}`);
-              core.setFailed(`Could not find project '${projectName}' for owner '${projectOwner}'. Please check the project name and number, and ensure the token has 'project' permissions.`);
+              core.setFailed(`Could not find project '${projectName}' for user '${projectOwner}'. Please check the project name and number, and ensure the token has 'project' permissions.`);
               return;
             }
 
@@ -95,6 +95,5 @@ jobs:
               console.error(`Error adding issue to project: ${error.message}`);
               core.setFailed(`Failed to add issue #${github.event.issue.number} to project '${projectName}'.`);
             }
-
 
             
