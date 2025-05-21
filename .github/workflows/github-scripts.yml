@@ -43,7 +43,7 @@ jobs:
 
             const projectNumber = 1; // <<<<<<<<<<< IMPORTANT: REPLACE WITH YOUR PROJECT NUMBER (e.g., 1, 2, 3...)
 
-            if (!projectOwner || !projectName || !columnName || !issueId || !projectNumber) {
+            if (!projectOwner || !projectName || !columnName || !issueNodeId || !projectNumber) {
             console.log('Owner, project name, column name, issue Node ID, or project number is missing.');
               return;
             }
