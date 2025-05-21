@@ -65,7 +65,8 @@ jobs:
                 owner: projectOwner,
                 projectNumber: projectNumber
               });
-              projectId = organization.projectV2.id;
+              //projectId = organization.projectV2.id;
+              projectId = user.projectV2.id;
               console.log(`Found project ID: ${projectId}`);
             } catch (error) {
               console.error(`Error finding project: ${error.message}`);
