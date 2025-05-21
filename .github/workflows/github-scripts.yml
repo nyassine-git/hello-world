@@ -32,7 +32,9 @@ jobs:
             const projectOwner = context.repo.owner;
             const projectName = process.env.projectName;
             const columnName = process.env.columnName;
-            const issueNodeId = github.event.issue.node_id;
+            //const issueNodeId = context.payload.issue.id;
+            //const issueNodeId = github.event.issue.node_id;
+            const issueNodeId = context.payload.issue.node_id;
   
             // To get the Project Number, navigate to your project board in GitHub,
             // the URL will look something like:
