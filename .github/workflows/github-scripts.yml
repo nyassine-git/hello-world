@@ -35,6 +35,7 @@ jobs:
             //const issueNodeId = context.payload.issue.id;
             //const issueNodeId = github.event.issue.node_id;
             const issueNodeId = context.payload.issue.node_id;
+            const issueNumber = context.payload.issue.number;
   
             // To get the Project Number, navigate to your project board in GitHub,
             // the URL will look something like:
@@ -94,10 +95,10 @@ jobs:
                 projectId: projectId,
                 contentId: issueNodeId
               });
-              console.log(`Successfully added issue #${github.event.issue.number} to project '${projectName}'.`);
+              console.log(`Successfully added issue '${issueNumber}' to project '${projectName}'.`);
             } catch (error) {
               console.error(`Error adding issue to project: ${error.message}`);
-              core.setFailed(`Failed to add issue #${github.event.issue.number} to project '${projectName}'.`);
+              core.setFailed(`Failed to add issue '${issueNumber}' to project '${projectName}'.`);
             }
 
             
