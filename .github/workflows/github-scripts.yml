@@ -24,7 +24,9 @@ jobs:
         projectName: hello-world-project
         columnName: Bug Backlog
       with:
-        #github-token: ${{ secrets.GITHUB_TOKEN }}
+        # GITHUB_TOKEN is scoped to the repository where the workflow is running 
+        # There is currently no direct way to give the GITHUB_TOKEN the necessary permissions to manage user-owned Project V2 boards
+        #github-token: ${{ secrets.GITHUB_TOKEN }} 
         github-token: ${{ secrets.NY_ACCESS_PAT }} # can expire 
         #project-name: 'hello-world-project'
         #column-name-to-find: 'Bug Backlog'
