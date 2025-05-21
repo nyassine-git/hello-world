@@ -24,7 +24,8 @@ jobs:
         projectName: hello-world-project
         columnName: Bug Backlog
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        #github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.NY_ACCESS_PAT }}
         #project-name: 'hello-world-project'
         #column-name-to-find: 'Bug Backlog'
         script: |
