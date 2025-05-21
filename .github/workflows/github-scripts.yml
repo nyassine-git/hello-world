@@ -28,6 +28,7 @@ jobs:
         #project-name: 'hello-world-project'
         #column-name-to-find: 'Bug Backlog'
         script: |
+            const projectOwner = context.repo.owner;
             const projectName = process.env.projectName;
             const columnName = process.env.columnName;
             const issueId = context.payload.issue.id;
