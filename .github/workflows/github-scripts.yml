@@ -25,7 +25,7 @@ jobs:
         columnName: Bug Backlog
       with:
         #github-token: ${{ secrets.GITHUB_TOKEN }}
-        github-token: ${{ secrets.NY_ACCESS_PAT }}
+        github-token: ${{ secrets.NY_ACCESS_PAT }} # can expire 
         #project-name: 'hello-world-project'
         #column-name-to-find: 'Bug Backlog'
         script: |
