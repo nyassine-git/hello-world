@@ -37,25 +37,27 @@ jobs:
             console.log('Project name, column name, or issue Node ID is missing.');
               return;
             }
+            
+            // To get the Project Number, navigate to your project board in GitHub,
+            // the URL will look something like:
+            // https://github.com/orgs/YOUR_ORG_OR_USERNAME/projects/PROJECT_NUMBER 
+            // or 
+            // https://github.com/users/YOUR_USERNAME/projects/PROJECT_NUMBER
+            // The PROJECT_NUMBER is what you need here.
+
+            const projectNumber = 1; // <<<<<<<<<<< IMPORTANT: REPLACE WITH YOUR PROJECT NUMBER (e.g., 1, 2, 3...)
 
             // 1. Find the project ID (node_id)
             // This query fetches the project by name within the specified owner context
             const projectQuery = `
               query($owner: String!, $projectNumber: Int!) {
-                organization(login: $owner) { # Use 'user' if it's a user project
+                user(login: $owner) { # *** Changed from 'organization' to 'user' *** Use 'user' if it's a user project
                   projectV2(number: $projectNumber) {
                     id
                   }
                 }
               }
             `;
-
-            // To get the Project Number, navigate to your project board in GitHub,
-            // the URL will look something like:
-            // https://github.com/orgs/YOUR_ORG_OR_USERNAME/projects/PROJECT_NUMBER
-            // The PROJECT_NUMBER is what you need here.
-
-            const projectNumber = 1; // <<<<<<<<<<< IMPORTANT: REPLACE WITH YOUR PROJECT NUMBER (e.g., 1, 2, 3...)
 
             let projectId;
             try {
